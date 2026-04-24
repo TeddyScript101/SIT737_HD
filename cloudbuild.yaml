@@ -81,8 +81,13 @@ steps:
         sed -i "s|$_DOCKER_USERNAME/diary-service:latest|$_DOCKER_USERNAME/diary-service:$COMMIT_SHA|g" kubernetes/diary-deployment.yaml
         sed -i "s|$_DOCKER_USERNAME/diary-frontend:latest|$_DOCKER_USERNAME/diary-frontend:$COMMIT_SHA|g" kubernetes/frontend-deployment.yaml
         
-        # Apply the Kubernetes configurations
-        kubectl apply -f kubernetes/ -n $_NAMESPACE
+        # Apply the Kubernetes configurations (secret.yaml is managed manually)
+        kubectl apply -f kubernetes/namespace.yaml
+        kubectl apply -f kubernetes/mongodb-deployment.yaml -n $_NAMESPACE
+        kubectl apply -f kubernetes/auth-deployment.yaml    -n $_NAMESPACE
+        kubectl apply -f kubernetes/diary-deployment.yaml   -n $_NAMESPACE
+        kubectl apply -f kubernetes/frontend-deployment.yaml -n $_NAMESPACE
+        kubectl apply -f kubernetes/ingress.yaml            -n $_NAMESPACE
 
         # Wait for deployments to roll out successfully
         kubectl rollout status deployment/auth-service  -n $_NAMESPACE --timeout=120s || true
