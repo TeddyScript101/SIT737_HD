@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diary-service
+  namespace: diary-app
+  labels:
+    app: diary-service
+spec:
+  replicas: 1  # ReadWriteOnce PVC: only one replica can mount the volume
+  selector:
+    matchLabels:
+      app: diary-service
+  template:
+    metadata:
+      labels:
+        app: diary-service
+    spec:
+      containers:
+        - name: diary-service
+          image: gcr.io/YOUR_PROJECT_ID/diary-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3002
+          env:
+            - name: PORT
+              value: "3002"
+            - name: MONGO_URI
+              value: "mongodb://mongodb:27017/diary-entries"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: diary-secrets
+                  key: jwt-secret
+            - name: UPLOADS_DIR
+              value: "/uploads"
+          volumeMounts:
+            - name: uploads-storage
+              mountPath: /uploads
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: uploads-storage
+          persistentVolumeClaim:
+            claimName: diary-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: diary-service
+  namespace: diary-app
+spec:
+  selector:
+    app: diary-service
+  ports:
+    - port: 3002
+      targetPort: 3002
+  type: ClusterIP

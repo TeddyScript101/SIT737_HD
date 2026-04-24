@@ -1,0 +1,20 @@
+# PersistentVolumeClaim for diary image uploads.
+# On GKE, dynamic provisioning via the "standard" StorageClass is used —
+# a PersistentVolume is created automatically when this PVC is bound.
+#
+# Note: ReadWriteOnce allows only one node to mount the volume at a time.
+# The diary-service Deployment is therefore kept at replicas: 1.
+# For multi-replica support, switch to a ReadWriteMany-capable StorageClass
+# (e.g., Filestore / NFS) or migrate uploads to Google Cloud Storage.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: diary-uploads-pvc
+  namespace: diary-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 10Gi

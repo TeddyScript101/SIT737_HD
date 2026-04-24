@@ -1,0 +1,49 @@
+# Optional: use this Ingress instead of the LoadBalancer Service on the frontend
+# if you have the nginx Ingress Controller installed on your GKE cluster.
+#
+# Install the controller first:
+#   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.5/deploy/static/provider/cloud/deploy.yaml
+#
+# Then apply this file and remove the LoadBalancer type from frontend-deployment.yaml
+# (change it to ClusterIP).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: diary-ingress
+  namespace: diary-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-body-size: 12m
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api/auth(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 3001
+          - path: /api/diary(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: diary-service
+                port:
+                  number: 3002
+          - path: /uploads(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: diary-service
+                port:
+                  number: 3002
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

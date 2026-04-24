@@ -1,0 +1,92 @@
+substitutions:
+  _REGION: us-central1
+  _CLUSTER: diary-cluster
+  _NAMESPACE: diary-app
+
+steps:
+  # ── Build all three images in parallel ──────────────────────────────────────
+  - id: build-auth
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - gcr.io/$PROJECT_ID/auth-service:$COMMIT_SHA
+      - -t
+      - gcr.io/$PROJECT_ID/auth-service:latest
+      - ./auth-service
+    waitFor: ['-']
+
+  - id: build-diary
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - gcr.io/$PROJECT_ID/diary-service:$COMMIT_SHA
+      - -t
+      - gcr.io/$PROJECT_ID/diary-service:latest
+      - ./diary-service
+    waitFor: ['-']
+
+  - id: build-frontend
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - gcr.io/$PROJECT_ID/diary-frontend:$COMMIT_SHA
+      - -t
+      - gcr.io/$PROJECT_ID/diary-frontend:latest
+      - ./frontend
+    waitFor: ['-']
+
+  # ── Push all three images in parallel ────────────────────────────────────────
+  - id: push-auth
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, gcr.io/$PROJECT_ID/auth-service]
+    waitFor: [build-auth]
+
+  - id: push-diary
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, gcr.io/$PROJECT_ID/diary-service]
+    waitFor: [build-diary]
+
+  - id: push-frontend
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, gcr.io/$PROJECT_ID/diary-frontend]
+    waitFor: [build-frontend]
+
+  # ── Update image refs and deploy to GKE ─────────────────────────────────────
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        gcloud container clusters get-credentials $_CLUSTER \
+          --region $_REGION --project $PROJECT_ID
+
+        # Stamp the commit SHA into the deployment manifests
+        sed -i \
+          "s|gcr.io/YOUR_PROJECT_ID/auth-service:latest|gcr.io/$PROJECT_ID/auth-service:$COMMIT_SHA|g" \
+          kubernetes/auth-deployment.yaml
+        sed -i \
+          "s|gcr.io/YOUR_PROJECT_ID/diary-service:latest|gcr.io/$PROJECT_ID/diary-service:$COMMIT_SHA|g" \
+          kubernetes/diary-deployment.yaml
+        sed -i \
+          "s|gcr.io/YOUR_PROJECT_ID/diary-frontend:latest|gcr.io/$PROJECT_ID/diary-frontend:$COMMIT_SHA|g" \
+          kubernetes/frontend-deployment.yaml
+
+        kubectl apply -f kubernetes/ -n $_NAMESPACE
+
+        kubectl rollout status deployment/auth-service  -n $_NAMESPACE --timeout=120s
+        kubectl rollout status deployment/diary-service -n $_NAMESPACE --timeout=120s
+        kubectl rollout status deployment/frontend      -n $_NAMESPACE --timeout=120s
+    waitFor: [push-auth, push-diary, push-frontend]
+
+images:
+  - gcr.io/$PROJECT_ID/auth-service:$COMMIT_SHA
+  - gcr.io/$PROJECT_ID/diary-service:$COMMIT_SHA
+  - gcr.io/$PROJECT_ID/diary-frontend:$COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
