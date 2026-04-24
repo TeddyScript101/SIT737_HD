@@ -101,4 +101,4 @@ images:
   - $_DOCKER_USERNAME/diary-frontend:$COMMIT_SHA
 
 options:
-  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+  logging: NONE
