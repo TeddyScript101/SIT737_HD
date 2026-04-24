@@ -33,8 +33,9 @@ spec:
           readinessProbe:
             exec:
               command: [mongosh, --eval, "db.adminCommand('ping')"]
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
+            failureThreshold: 6
       volumes:
         - name: mongo-data
           persistentVolumeClaim:
@@ -61,7 +62,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: standard-rwo
+  storageClassName: standard
   resources:
     requests:
       storage: 5Gi
