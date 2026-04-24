@@ -1,5 +1,5 @@
 substitutions:
-  _REGION: us-central1
+  _REGION: australia-southeast2
   _CLUSTER: diary-cluster
   _NAMESPACE: diary-app
 
