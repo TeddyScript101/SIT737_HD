@@ -96,4 +96,4 @@ images:
   - $_DOCKER_USERNAME/diary-frontend:$COMMIT_SHA
 
 options:
-  logging: LEGACY
+  logging: NONE
