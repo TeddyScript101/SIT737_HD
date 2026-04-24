@@ -23,17 +23,14 @@ const bucket    = GCS_BUCKET_NAME ? gcsClient.bucket(GCS_BUCKET_NAME) : null;
 async function uploadToGCS(file) {
   const ext      = path.extname(file.originalname).toLowerCase();
   const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-  const blob     = bucket.file(filename);
+  const blob     = bucket.file(`uploads/${filename}`);
   await blob.save(file.buffer, { contentType: file.mimetype });
-  // Return the same /images/filename path format as before so the frontend
-  // doesn't have to change.
   return `/images/${filename}`;
 }
 
 async function deleteFromGCS(imageUrl) {
-  // imageUrl is stored as /images/filename
   const filename = path.basename(imageUrl);
-  await bucket.file(filename).delete();
+  await bucket.file(`uploads/${filename}`).delete();
 }
 
 const upload = multer({
@@ -94,7 +91,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'diary' }));
 app.get('/images/:filename', async (req, res) => {
   if (!bucket) return res.status(503).json({ error: 'Storage not configured' });
   try {
-    const file = bucket.file(req.params.filename);
+    const file = bucket.file(`uploads/${req.params.filename}`);
     const [metadata] = await file.getMetadata();
     res.setHeader('Content-Type', metadata.contentType || 'application/octet-stream');
     file.createReadStream()
