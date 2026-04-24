@@ -29,7 +29,7 @@ resource "google_storage_bucket" "diary_uploads" {
 
 # ── Service Account for diary-service ────────────────────────────────────────
 resource "google_service_account" "diary_app_sa" {
-  account_id   = "diary-app-sa"
+  account_id   = "diary-app-sa-2"
   display_name = "Diary App GCS Access"
 }
 
@@ -56,9 +56,10 @@ resource "google_container_cluster" "diary_cluster" {
 
   remove_default_node_pool = false
   initial_node_count       = 1
+  deletion_protection      = false
 
   node_config {
-    machine_type = "e2-small"
+    machine_type = "e2-medium"
     disk_size_gb = 30
   }
 }

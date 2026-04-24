@@ -25,13 +25,13 @@ async function uploadToGCS(file) {
   const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
   const blob     = bucket.file(filename);
   await blob.save(file.buffer, { contentType: file.mimetype });
-  // Return the same /uploads/filename path format as before so the frontend
-  // and Nginx proxy config need no changes.
-  return `/uploads/${filename}`;
+  // Return the same /images/filename path format as before so the frontend
+  // doesn't have to change.
+  return `/images/${filename}`;
 }
 
 async function deleteFromGCS(imageUrl) {
-  // imageUrl is stored as /uploads/filename
+  // imageUrl is stored as /images/filename
   const filename = path.basename(imageUrl);
   await bucket.file(filename).delete();
 }
@@ -90,8 +90,8 @@ function handleUpload(req, res, next) {
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'diary' }));
 
-// Stream images from GCS — keeps the same /uploads/:filename URL shape as before
-app.get('/uploads/:filename', async (req, res) => {
+// Stream images from GCS — keeps the same /images/:filename URL shape as before
+app.get('/images/:filename', async (req, res) => {
   if (!bucket) return res.status(503).json({ error: 'Storage not configured' });
   try {
     const file = bucket.file(req.params.filename);

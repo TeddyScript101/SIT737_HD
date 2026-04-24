@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: gcr.io/YOUR_PROJECT_ID/auth-service:latest
+          image: teddyhiny/auth-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3001
