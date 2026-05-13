@@ -162,4 +162,4 @@ To trigger automatically on every push, connect your repository in the Cloud Bui
 - **JWT secret:** The same `JWT_SECRET` must be set in both auth-service and diary-service. In Kubernetes this is done via the shared `diary-secrets` Secret.
 - **MongoDB:** A single Deployment is used for simplicity. For production, consider using MongoDB Atlas or a GKE StatefulSet with a replica set.
 
-tigger
+tigger1
