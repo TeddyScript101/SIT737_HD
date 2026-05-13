@@ -83,11 +83,12 @@ steps:
         
         # Apply the Kubernetes configurations (secret.yaml is managed manually)
         kubectl apply -f kubernetes/namespace.yaml
-        kubectl apply -f kubernetes/mongodb-deployment.yaml -n $_NAMESPACE
-        kubectl apply -f kubernetes/auth-deployment.yaml    -n $_NAMESPACE
-        kubectl apply -f kubernetes/diary-deployment.yaml   -n $_NAMESPACE
+        kubectl apply -f kubernetes/mongodb-deployment.yaml  -n $_NAMESPACE
+        kubectl apply -f kubernetes/auth-deployment.yaml     -n $_NAMESPACE
+        kubectl apply -f kubernetes/diary-deployment.yaml    -n $_NAMESPACE
         kubectl apply -f kubernetes/frontend-deployment.yaml -n $_NAMESPACE
-        kubectl apply -f kubernetes/ingress.yaml            -n $_NAMESPACE
+        kubectl apply -f kubernetes/ingress.yaml             -n $_NAMESPACE
+        kubectl apply -f kubernetes/hpa.yaml                 -n $_NAMESPACE
 
         # Wait for deployments to roll out successfully
         kubectl rollout status deployment/auth-service  -n $_NAMESPACE --timeout=120s || true

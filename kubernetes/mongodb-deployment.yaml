@@ -39,6 +39,13 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: [mongosh, --eval, "db.adminCommand('ping')"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
       volumes:
         - name: mongo-data
           persistentVolumeClaim:

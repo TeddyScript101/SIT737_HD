@@ -19,6 +19,7 @@ kubectl apply -f kubernetes/auth-deployment.yaml     -n $NAMESPACE
 kubectl apply -f kubernetes/diary-deployment.yaml    -n $NAMESPACE
 kubectl apply -f kubernetes/frontend-deployment.yaml -n $NAMESPACE
 kubectl apply -f kubernetes/ingress.yaml             -n $NAMESPACE
+kubectl apply -f kubernetes/hpa.yaml                 -n $NAMESPACE
 
 echo "Waiting for rollout..."
 kubectl rollout status deployment/auth-service  -n $NAMESPACE --timeout=120s
